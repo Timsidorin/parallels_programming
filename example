@@ -1,0 +1,21 @@
+from tkinter import *
+from tkinter import ttk
+
+root = Tk()
+root.title("Лабораторная 1")
+root.geometry("250x200")
+
+
+def click():
+    window = Tk()
+    window.title("Новый про")
+    window.geometry("500x500")
+
+
+first_process = ttk.Button(text="Процесс 1", command=click)
+second_process = ttk.Button(text="Процесс 2", command=click)
+first_process.pack(anchor=CENTER, expand=1,)
+second_process.pack(anchor=CENTER, expand=1)
+
+
+root.mainloop()
