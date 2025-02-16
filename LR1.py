@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import Canvas
-from multiprocessing import Process
+from multiprocessing import Process,current_process
 from random import randint
 from itertools import cycle
 import random
@@ -16,6 +16,7 @@ def change_line_color(canvas, line_id, colors):
 
 
 def change_line_thickness(canvas, line_id):
+    """ Функция для изменения ширины линии"""
     width = randint(1,10)
     canvas.itemconfig(line_id, width=width)
     canvas.after(100, change_line_thickness, canvas, line_id)
@@ -24,6 +25,12 @@ def create_new_window(position):
     # Создаем новое окно
     new_window = tk.Tk()
     new_window.title(f"Окно {position}")
+
+    # выводим номер процесса
+    pid = current_process().pid
+    label = tk.Label(new_window, text=f"Номер процесса: {pid}")
+    label.pack()
+
 
     # Устанавливаем положение окна
     screen_width = new_window.winfo_screenwidth()
