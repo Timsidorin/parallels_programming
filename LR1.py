@@ -1,105 +1,175 @@
 import tkinter as tk
 from tkinter import Canvas
-from multiprocessing import Process, current_process
+from multiprocessing import Process
 from random import randint
-from itertools import cycle
 
-def change_line_color(canvas, line_id, colors):
-    """Функция для изменения цвета линии."""
-    color = next(colors)
-    canvas.itemconfig(line_id, fill=color)
-    canvas.after(100, change_line_color, canvas, line_id, colors)
 
-def change_line_thickness(canvas, line_id):
-    """Функция для изменения ширины линии."""
-    width = randint(1, 10)
-    canvas.itemconfig(line_id, width=width)
-    canvas.after(100, change_line_thickness, canvas, line_id)
+class AnimatedLine:
+    def __init__(self, canvas, width, height):
+        self.canvas = canvas
+        self.width = width
+        self.height = height
+        self.line_id = self.create_random_line()
+        self.start_animations()
 
-def create_new_window(position):
-    # Создаем новое окно
-    new_window = tk.Tk()
-    new_window.title(f"Окно {position}")
 
-    # Выводим номер процесса
-    pid = current_process().pid
-    label = tk.Label(new_window, text=f"Номер процесса: {pid}")
-    label.pack()
+    def create_random_line(self):
+        return self.canvas.create_line(
+            randint(0, self.width),
+            randint(0, self.height),
+            randint(0, self.width),
+            randint(0, self.height),
+            width=randint(1, 10)
+        )
 
-    # Устанавливаем положение окна
-    screen_width = new_window.winfo_screenwidth()
-    screen_height = new_window.winfo_screenheight()
-    window_width = 500
-    window_height = 500
+    def change_color(self):
+        color = "#{:06x}".format(randint(0, 0xFFFFFF))
+        self.canvas.itemconfig(self.line_id, fill=color)
+        self.canvas.after(100, self.change_color)
 
-    if position == "справа":
-        x = screen_width - window_width - 50  # Отступ 50 пикселей от правого края
-        y = (screen_height - window_height) // 2
-    elif position == "слева":
-        x = 50  # Отступ 50 пикселей от левого края
-        y = (screen_height - window_height) // 2
+    def change_thickness(self):
+        width = randint(1, 10)
+        self.canvas.itemconfig(self.line_id, width=width)
+        self.canvas.after(100, self.change_thickness)
 
-    # Создаем холст
-    canvas = Canvas(new_window, bg="white", width=window_width, height=window_height)
-    canvas.pack(expand=True)
+    def change_position(self):
+        new_coords = (
+            randint(0, self.width),
+            randint(0, self.height),
+            randint(0, self.width),
+            randint(0, self.height)
+        )
+        self.canvas.coords(self.line_id, *new_coords)
+        self.canvas.after(100, self.change_position)
 
-    # Рисуем линию
-    line_id = canvas.create_line(10, 10, 200, 50, width=2)
+    def start_animations(self):
+        self.change_color()
+        self.change_thickness()
+        self.change_position()
 
-    # Цикл цветов для линии
-    colors = cycle(["red", "green", "blue", "yellow", "purple", "orange"])
 
-    # Запускаем смену цвета
-    change_line_color(canvas, line_id, colors)
+class AnimatedCircle:
+    def __init__(self, canvas, width, height):
+        self.canvas = canvas
+        self.width = width
+        self.height = height
+        self.circle_id = self.create_random_circle()
+        self.start_animations()
 
-    # Запускаем смену толщины
-    change_line_thickness(canvas, line_id)
+    def create_random_circle(self):
+        radius = randint(10, 50)
+        x = randint(radius, self.width - radius)
+        y = randint(radius, self.height - radius)
+        return self.canvas.create_oval(
+            x - radius, y - radius,
+            x + radius, y + radius,
+            fill="#{:06x}".format(randint(0, 0xFFFFFF)),
+            outline=""
+        )
 
-    # Устанавливаем геометрию окна
-    new_window.geometry(f"{window_width}x{window_height}+{x}+{y}")
-    new_window.mainloop()
+    def change_color(self):
+        color = "#{:06x}".format(randint(0, 0xFFFFFF))
+        self.canvas.itemconfig(self.circle_id, fill=color, outline=color)
+        self.canvas.after(100, self.change_color)
 
-def main():
-    # Создание главного окна
-    root = tk.Tk()
-    root.title("Главное окно")
+    def change_size_and_position(self):
+        new_radius = randint(10, 50)
+        x = randint(new_radius, self.width - new_radius)
+        y = randint(new_radius, self.height - new_radius)
+        self.canvas.coords(
+            self.circle_id,
+            x - new_radius, y - new_radius,
+            x + new_radius, y + new_radius
+        )
+        self.canvas.after(100, self.change_size_and_position)
 
-    # Устанавливаем размеры окна
-    window_width = 400
-    window_height = 300
+    def start_animations(self):
+        self.change_color()
+        self.change_size_and_position()
 
-    # Получаем размеры экрана
-    screen_width = root.winfo_screenwidth()
-    screen_height = root.winfo_screenheight()
 
-    # Вычисляем координаты для центрирования окна
-    x = (screen_width - window_width) // 2
-    y = (screen_height - window_height) // 2
+class ChildWindow:
+    WIDTH = 500
+    HEIGHT = 500
 
-    # Устанавливаем геометрию окна
-    root.geometry(f"{window_width}x{window_height}+{x}+{y}")
+    def __init__(self, position):
+        self.position = position
+        self.window = tk.Tk()
+        self.canvas = Canvas(self.window, bg="white", width=self.WIDTH, height=self.HEIGHT)
+        self.setup_window()
 
-    # Создаем фрейм для кнопок
-    button_frame = tk.Frame(root)
-    button_frame.pack(expand=True)
+    def setup_window(self):
+        self.window.title(f"Окно {self.position}")
+        self.add_process_label()
+        self.position_window()
+        self.canvas.pack(expand=True)
+        self.create_content()
 
-    # Кнопка для открытия окна справа
-    right_button = tk.Button(
-        button_frame,
-        text="Открыть правое окно",
-        command=lambda: Process(target=create_new_window, args=("справа",)).start()
-    )
-    right_button.pack(pady=10)
+    def add_process_label(self):
+        pid = Process().pid
+        label = tk.Label(self.window, text=f"Номер процесса: {pid}")
+        label.pack()
 
-    # Кнопка для открытия окна слева
-    left_button = tk.Button(
-        button_frame,
-        text="Открыть левое окно",
-        command=lambda: Process(target=create_new_window, args=("слева",)).start()
-    )
-    left_button.pack(pady=10)
+    def position_window(self):
+        screen_width = self.window.winfo_screenwidth()
+        screen_height = self.window.winfo_screenheight()
 
-    root.mainloop()
+        if self.position == "справа":
+            x = screen_width - self.WIDTH - 50
+        else:
+            x = 50
+
+        y = (screen_height - self.HEIGHT) // 2
+        self.window.geometry(f"{self.WIDTH}x{self.HEIGHT}+{x}+{y}")
+
+    def create_content(self):
+        if self.position == "слева":
+            AnimatedLine(self.canvas, self.WIDTH, self.HEIGHT)
+        else:
+            AnimatedCircle(self.canvas, self.WIDTH, self.HEIGHT)
+
+    def run(self):
+        self.window.mainloop()
+
+
+class MainWindow:
+    def __init__(self):
+        self.root = tk.Tk()
+        self.root.title("Лабораторная работа 1")
+        self.setup_main_window()
+        self.create_buttons()
+
+    def setup_main_window(self):
+        width, height = 400, 300
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        x = (screen_width - width) // 2
+        y = (screen_height - height) // 2
+        self.root.geometry(f"{width}x{height}+{x}+{y}")
+
+    def create_buttons(self):
+        frame = tk.Frame(self.root)
+        frame.pack(expand=True)
+
+        buttons = [
+            ("Открыть правое окно", "справа"),
+            ("Открыть левое окно", "слева")
+        ]
+
+        for text, position in buttons:
+            btn = tk.Button(
+                frame,
+                text=text,
+                command=lambda pos=position: Process(
+                    target=ChildWindow(pos).run
+                ).start()
+            )
+            btn.pack(pady=10)
+
+    def run(self):
+        self.root.mainloop()
+
 
 if __name__ == '__main__':
-    main()
+    app = MainWindow()
+    app.run()
