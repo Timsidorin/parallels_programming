@@ -10,16 +10,18 @@ class AnimateFigure:
         self.canvas = canvas
         self.width = width
         self.height = height
-        self.shape_id = self.make_shape(shape_type)
+        self.shape_id = self.make_shape(shape_type) #Создаем фигуру нужного типа
         self.animate(shape_type)
 
     def random_color(self):
+        """Меняем цвет фигуры"""
         r = randint(0, 255)
         g = randint(0, 255)
         b = randint(0, 255)
         return f"#{r:02x}{g:02x}{b:02x}"
 
     def make_shape(self, shape_type):
+        """Создание фигуры"""
         if shape_type == "line":
             return self.canvas.create_line(
                 randint(0, self.width), randint(0, self.height),
@@ -35,6 +37,7 @@ class AnimateFigure:
             )
 
     def update(self, shape_type):
+        """Обновление кадра анимации"""
         if shape_type == "line":
             self.canvas.itemconfig(self.shape_id, fill=self.random_color(), width=randint(1, 10))
             self.canvas.coords(self.shape_id,
@@ -106,7 +109,6 @@ class MainWindow:
         self.processes[position] = (process, button)
 
     def on_window_close(self, position):
-
         if position in self.processes:
             _, button = self.processes[position]
             button.config(state="normal")
